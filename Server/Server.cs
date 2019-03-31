@@ -17,7 +17,7 @@ namespace Server
         {
             Console.WriteLine("Server Started");
             IPHostEntry Host = Dns.GetHostEntry(Dns.GetHostName());//get host 
-            Console.WriteLine("Ip : "+GetAddress(Host).ToString());//get server address 
+            Console.WriteLine("IP : "+GetAddress(Host).ToString());//get server address 
             TcpListener server = new TcpListener( GetAddress(Host) , 5647);//create socket to listen at server at given port number
             TcpClient ClientSocket ;//to hold client socket
             int ClientNumber = 0;

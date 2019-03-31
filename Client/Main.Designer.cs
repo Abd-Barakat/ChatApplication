@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
             this.ConversationBox = new System.Windows.Forms.TextBox();
             this.MsgBox = new System.Windows.Forms.TextBox();
             this.SendButton = new System.Windows.Forms.Button();
@@ -123,7 +124,6 @@
             this.AddressBox.Name = "AddressBox";
             this.AddressBox.Size = new System.Drawing.Size(241, 20);
             this.AddressBox.TabIndex = 1;
-            this.AddressBox.Text = "10.0.0.131";
             this.ControlHelp.SetToolTip(this.AddressBox, "Write Server address");
             this.AddressBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.AddressBox_KeyDown);
             // 
@@ -159,6 +159,7 @@
             this.Controls.Add(this.SendButton);
             this.Controls.Add(this.MsgBox);
             this.Controls.Add(this.ConversationBox);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(437, 373);
             this.Name = "Main";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
