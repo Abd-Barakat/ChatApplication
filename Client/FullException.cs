@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace ChatApplication
 {
-    class DolarException:Exception
+    class FullException:Exception
     {
-        public DolarException():base("User name should not contain $ symbol")
+        public FullException():base("The room is full")
         {
 
         }

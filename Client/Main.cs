@@ -20,7 +20,7 @@ namespace ChatApplication
         private NetworkStream network;// Client network stream
         private Thread CtThread;//Client thread to keep listening to server while connection open
         /// <summary>
-        /// Initialize class & create thread to listen from server
+        /// Initialize clients & create thread to listen from server
         /// </summary>
         public Main()
         {
@@ -50,17 +50,36 @@ namespace ChatApplication
                     {
                         return;//terminate thread
                     }
+                    if (size ==2)
+                    {
+                        throw new FullException();
+
+                    }
                     if (size < ReceiveData.Length)//if retrived data size is less than located memory then resize memory
                     {
                         Array.Resize(ref ReceiveData, size);
                     }
                     string Data = Encoding.ASCII.GetString(ReceiveData);//transform bytes to string
-                    Data.Replace('$', ':');//replace $ with : 
                     SetText(Data);//write data to conversationbox textbox 
+                }
+                catch (IOException ex)
+                {
+                    MessageBox.Show("Server has shut down", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    PrintErrors("Server has shut down", ex);
+                    this.Close();//close thread if any error occur
+                    return;
+                }
+                catch (FullException ex)
+                {
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    PrintErrors(ex);
+                    this.Close();//close thread if the room is full.
+                    return;
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    PrintErrors(ex);
                     this.Close();//close thread if any error occur
                     return;
                 }
@@ -99,19 +118,9 @@ namespace ChatApplication
                 {
                     throw new NullReferenceException();//throw exception
                 }
-                else if (NameBox.Text.Contains('$'))
-                {
-                    throw new DolarException();
-                }
                 client.Connect(IPAddress.Parse(AddressBox.Text), 5647);//transform string to IP if posible or throw format exception
                 CtThread.Start();//start listen thread after connection established
                 InformationPanel.Enabled = false;//enable information panel after connection established
-            }
-            catch (DolarException ex)
-            {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                PrintErrors(ex);
-                NameBox.Text = "";
             }
             catch (NullReferenceException ex)//catch exception that fired when Namebox is empty
             {
@@ -155,11 +164,9 @@ namespace ChatApplication
                 }
                 if (MsgBox.Text != "")//if no message written then no data to send
                 {
-                    MsgBox.Text = string.Concat(NameBox.Text + "$ : ", MsgBox.Text);//concatinate user name and message written by him using saparation symbol 
+                    MsgBox.Text = string.Concat(NameBox.Text + " : ", MsgBox.Text);//concatinate user name and message written by him using saparation symbol 
                     network = client.GetStream();//handle client stream 
                     byte[] SendData = Encoding.ASCII.GetBytes(MsgBox.Text);//hold message in bytes
-                    byte[] Header = BitConverter.GetBytes(SendData.Length);//save data size.
-                    network.Write(Header, 0, 4);//send data size in 4 bytes
                     network.Write(SendData, 0, SendData.Length);//send data
                     MsgBox.Text = "";//clear message box    
                     MsgBox.Focus();//give message box foucs to write next message

@@ -6,69 +6,61 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
 using System.IO;
-using System.Net.Sockets;namespace Server
+using System.Net.Sockets;
+namespace Server
 {
     class HandleClients
     {
-        private TcpClient Client;
-        private int Client_Number;
-        Thread ChThreat;
-        public HandleClients (TcpClient client , int number)
+        private TcpClient Client;//hold client socket
+        private int Client_Number;//store client number 
+        Thread ChThreat;//to keep listening from client
+        /// <summary>
+        /// initialize client socket and client's number and create thread to listen from client
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="number"></param>
+        public HandleClients(TcpClient client, int number)
         {
             Client = client;
             Client_Number = number;
             ChThreat = new Thread(Chat);
-            ChThreat.Start();
+            ChThreat.Start();//start listening from client
         }
-        private void Chat ()
+        /// <summary>
+        /// broadcasting message retrived from the client to all connected clients
+        /// </summary>
+        private void Chat()
         {
-            int RequestCount = 0;
-            int size;
-            Int64 BytesReceived = 0;
-            byte[] ReceivedBytes;
-            string ReceivedData;
-            string[] Client_Info;
-            byte[] SendByte = null;
-            string SendData="";
+            int BytesNumber;//hold number of bytes 
+            byte[] Buffer;//locate memory to store all bytes received
+            string ReceivedData = "";//locate memory to store received data as string 
             while (true)
             {
                 try
                 {
-                    RequestCount++;
-                    ReceivedBytes = new byte[1024 * 20]; ;
+                    Buffer = new byte[1024 * 20]; //to store received Data from client
                     NetworkStream network = Client.GetStream();
-                    Int64 NumberOfBytes = network.Read(ReceivedBytes, 0, 4);
-                    if (NumberOfBytes==1)
+                    BytesNumber = network.Read(Buffer, 0, Buffer.Length);//save data in buffer and save size of data in BytesNumber
+                    if (BytesNumber == 1)//Client closes
                     {
                         byte[] CloseCode = new byte[1];
-                        network.Write(CloseCode, 0, 1);
+                        network.Write(CloseCode, 0, 1);//send ACk to client that server will close connection.
                         Console.WriteLine("Client #" + Client_Number + " Closed");
-                        Server.clients.Remove(this.Client);
+                        Server.clients.Remove(this.Client);//remove client from the list
                         return;
                     }
-                    while (BytesReceived<NumberOfBytes &&(size=network.Read(ReceivedBytes,0,ReceivedBytes.Length))>0)
+                    if (BytesNumber < Buffer.Length)//cut buffer to actual size
                     {
-                        if (size < ReceivedBytes.Length)
-                        {
-                            Array.Resize(ref ReceivedBytes, size);
-                        }
-                        ReceivedData = Encoding.ASCII.GetString(ReceivedBytes);
-                        if (ReceivedData.Contains('$'))
-                        {
-                            Client_Info = ReceivedData.Split('$');
-                            SendData = Client_Info[0]  + Client_Info[1];
-                            Console.WriteLine(SendData);
-                        }
-                        BytesReceived += size;
+                        Array.Resize(ref Buffer, BytesNumber);
                     }
-                    BytesReceived = 0;
-                    SendByte = Encoding.ASCII.GetBytes(SendData);
-                    for (int index = 0; index < Server.clients.Count; index++)
+                    ReceivedData = Encoding.ASCII.GetString(Buffer);//transform bytes into string
+                    Console.WriteLine(ReceivedData);//print string 
+                    for (int index = 0; index < Server.clients.Count; index++)//broadcast to all clients 
                     {
-                        Server.clients[index].GetStream().Write(SendByte, 0, SendByte.Length);
+                        Server.clients[index].GetStream().Write(Buffer, 0, Buffer.Length);
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
                     PrintErrors(ex);
@@ -76,10 +68,13 @@ using System.Net.Sockets;namespace Server
                     return;
                 }
             }
-        }
+        }/// <summary>
+        /// Print Errors in Error.txt file in application folder
+        /// </summary>
+        /// <param name="ex"></param>
         private void PrintErrors(Exception ex)
         {
-            string ErrorPath = System.IO.Directory.GetParent(@"..\..\..\").FullName;
+            string ErrorPath = System.IO.Directory.GetParent(@"..\..\..\").FullName;//return path of Application folder
             using (StreamWriter stream = new StreamWriter(ErrorPath + @"\Error.txt"))
             {
                 stream.WriteLine("Date : " + DateTime.Now.ToLocalTime());
