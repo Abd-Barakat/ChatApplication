@@ -22,9 +22,8 @@ namespace Server
             {
                 ClientsCount++;
                 ClientSocket = server.AcceptTcpClient();
-                Console.WriteLine("Client #" + ClientsCount.ToString() + "started");
+                Console.WriteLine("Client #" + ClientsCount.ToString() + " started");
                 HandleClients handle = new HandleClients(ClientSocket,ClientsCount);
-                
             }
         }
         private static IPAddress GetAddress(IPHostEntry Host)

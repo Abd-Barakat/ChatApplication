@@ -1,0 +1,7 @@
+Date :2019/3/28 
+Day  :Thursday 
+
+Building GUI and establish connection between clients and server so client can communicate with server now.
+
+
+Next step to able clients to send messages to each other 
