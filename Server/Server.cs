@@ -16,7 +16,7 @@ namespace Server
             IPHostEntry Host = Dns.GetHostEntry(Dns.GetHostName());
             Console.WriteLine("Ip : "+GetAddress(Host).ToString());
             TcpListener server = new TcpListener( GetAddress(Host) , 5647);
-            TcpClient ClientSocket = default(TcpClient);
+            TcpClient ClientSocket = new TcpClient();
             int ClientsCount = 0;
             server.Start();
             while (true)

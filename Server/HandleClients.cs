@@ -6,18 +6,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
 using System.IO;
-using System.Net.Sockets;
-namespace Server
+using System.Net.Sockets;namespace Server
 {
     class HandleClients
     {
         private TcpClient Client;
         private int Client_Number;
+        Thread ChThreat;
         public HandleClients (TcpClient client , int number)
         {
             Client = client;
             Client_Number = number;
-            Thread ChThreat = new Thread(Chat);
+            ChThreat = new Thread(Chat);
             ChThreat.Start();
         }
         private void Chat ()
@@ -37,10 +37,11 @@ namespace Server
                     RequestCount++;
                     ReceivedBytes = new byte[1024 * 20]; ;
                     NetworkStream network = Client.GetStream();
-                    network.Read(ReceivedBytes, 0,4);
-                    Int64 NumberOfBytes = BitConverter.ToInt64(ReceivedBytes,0);
-                    if (NumberOfBytes==0)
+                    Int64 NumberOfBytes = network.Read(ReceivedBytes, 0, 4);
+                    if (NumberOfBytes==1)
                     {
+                        byte[] CloseCode = new byte[1];
+                        network.Write(CloseCode, 0, 1);
                         Console.WriteLine("Client #" + Client_Number + " Closed");
                         Server.clients.Remove(this.Client);
                         return;

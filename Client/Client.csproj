@@ -61,6 +61,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DisconnectedException.cs" />
+    <Compile Include="DolarException.cs" />
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -1,7 +1,10 @@
-Date : 3/31/2019 11:11:47 AM
+Date : 3/31/2019 1:52:51 PM
 Stack trace :
-   at System.Net.Sockets.NetworkStream.Read(Byte[] buffer, Int32 offset, Int32 size)
-   at Server.HandleClients.Chat() in C:\Users\a.barakat\source\repos\ChatApplication\Server\HandleClients.cs:line 40
+   at System.Net.Sockets.Socket.DoConnect(EndPoint endPointSnapshot, SocketAddress socketAddress)
+   at System.Net.Sockets.Socket.Connect(EndPoint remoteEP)
+   at System.Net.Sockets.TcpClient.Connect(IPEndPoint remoteEP)
+   at System.Net.Sockets.TcpClient.Connect(IPAddress address, Int32 port)
+   at ChatApplication.Main.ConnectButton_Click(Object sender, EventArgs e) in C:\Users\a.barakat\source\repos\ChatApplication\Client\Main.cs:line 102
 Message :
-Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host.
+An attempt was made to access a socket in a way forbidden by its access permissions 10.0.0.130:5647
 ---------------------------------------------------------------------------------------------------------------
