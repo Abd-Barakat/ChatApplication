@@ -31,6 +31,7 @@ namespace Server
         /// </summary>
         private void Chat()
         {
+            int Actual_size = 0;
             int BytesNumber;//hold number of bytes 
             byte[] Buffer;//locate memory to store all bytes received
             string ReceivedData = "";//locate memory to store received data as string 
@@ -38,7 +39,7 @@ namespace Server
             {
                 try
                 {
-                    Buffer = new byte[1024 * 20]; //to store received Data from client
+                    Buffer = new byte[4]; //to store received Data from client
                     NetworkStream network = Client.GetStream();
                     BytesNumber = network.Read(Buffer, 0, Buffer.Length);//save data in buffer and save size of data in BytesNumber
                     if (BytesNumber == 1)//Client closes
@@ -49,16 +50,57 @@ namespace Server
                         Server.clients.Remove(this.Client);//remove client from the list
                         return;
                     }
-                    if (BytesNumber < Buffer.Length)//cut buffer to actual size
+                    while (Buffer != null)
                     {
-                        Array.Resize(ref Buffer, BytesNumber);
+                        byte[] Header = new byte[4];
+                        Header = Buffer.ToList().GetRange(0,4).ToArray();
+                        
+                        int Header_size = BitConverter.ToInt32(Header, 0);
+                       
+                        byte[] packet = new byte[Header_size];
+                        if (Buffer.Length==4)
+                        {
+                            Buffer = new byte[1024 * 20];
+                            Actual_size = network.Read(Buffer, 0, Buffer.Length);
+                        }
+                        else
+                        {
+                            List<byte> temp = Buffer.ToList();
+                            temp.RemoveRange(0, 4);
+                            Buffer = temp.ToArray();
+                            Actual_size = Buffer.Length;
+                        }
+                        if (Header_size < Buffer.Length)//cut buffer to actual size
+                        {
+
+                            Array.Resize(ref Buffer, Header_size);
+                        }
+                        if (Header_size == Actual_size)
+                        {
+                            ReceivedData = Encoding.UTF8.GetString(Buffer);//transform bytes into string
+                            Console.WriteLine(ReceivedData);//print string 
+                            for (int index = 0; index < Server.clients.Count; index++)//broadcast to all clients 
+                            {
+                                Server.clients[index].GetStream().Write(Buffer, 0, Buffer.Length);
+                            }
+                            Buffer = null;
+                        }
+                        else
+                        {
+                            packet = Buffer.ToList().GetRange(0, Header_size).ToArray();
+                            List<byte> temp = Buffer.ToList();
+                            temp.RemoveRange(0, Header_size);
+                            Buffer = temp.ToArray();
+                            ReceivedData = Encoding.UTF8.GetString(packet);//transform bytes into string
+                            Console.WriteLine(ReceivedData);//print string 
+                            for (int index = 0; index < Server.clients.Count; index++)//broadcast to all clients 
+                            {
+                                Server.clients[index].GetStream().Write(packet, 0, packet.Length);
+                            }
+                        }
+
                     }
-                    ReceivedData = Encoding.ASCII.GetString(Buffer);//transform bytes into string
-                    Console.WriteLine(ReceivedData);//print string 
-                    for (int index = 0; index < Server.clients.Count; index++)//broadcast to all clients 
-                    {
-                        Server.clients[index].GetStream().Write(Buffer, 0, Buffer.Length);
-                    }
+
                 }
                 catch (Exception ex)
                 {
@@ -69,9 +111,9 @@ namespace Server
                 }
             }
         }/// <summary>
-        /// Print Errors in Error.txt file in application folder
-        /// </summary>
-        /// <param name="ex"></param>
+         /// Print Errors in Error.txt file in application folder
+         /// </summary>
+         /// <param name="ex"></param>
         private void PrintErrors(Exception ex)
         {
             string ErrorPath = System.IO.Directory.GetParent(@"..\..\..\").FullName;//return path of Application folder

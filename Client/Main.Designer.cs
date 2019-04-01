@@ -124,6 +124,7 @@
             this.AddressBox.Name = "AddressBox";
             this.AddressBox.Size = new System.Drawing.Size(241, 20);
             this.AddressBox.TabIndex = 1;
+            this.AddressBox.Text = "10.0.0.131";
             this.ControlHelp.SetToolTip(this.AddressBox, "Write Server address");
             this.AddressBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.AddressBox_KeyDown);
             // 
@@ -135,6 +136,7 @@
             this.NameBox.Name = "NameBox";
             this.NameBox.Size = new System.Drawing.Size(241, 20);
             this.NameBox.TabIndex = 0;
+            this.NameBox.Text = "a";
             this.ControlHelp.SetToolTip(this.NameBox, "Write Your Name");
             this.NameBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.AddressBox_KeyDown);
             // 

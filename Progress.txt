@@ -5,3 +5,11 @@ Building GUI and establish connection between clients and server so client can c
 
 
 Next step to able clients to send messages to each other 
+-----------------------------------------------------------------------------------------------------------
+Date :2019/3/31 
+Day  :Sunday 
+
+Modify Server class to able clients chat togethers, notes added, Exceptions created. 
+
+Task submitted.
+ 

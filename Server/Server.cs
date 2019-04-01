@@ -28,7 +28,7 @@ namespace Server
                 if (clients.Count != 3)//check if the group is full
                 {
                     string ACK_Msg = "Connection Established";
-                    byte[] sendACK = Encoding.ASCII.GetBytes(ACK_Msg);//return ACK_Msg bytes
+                    byte[] sendACK = Encoding.UTF8.GetBytes(ACK_Msg);//return ACK_Msg bytes
                     ClientSocket.GetStream().Write(sendACK, 0, sendACK.Length);//write on client stream (send ack to client).
                     clients.Add(ClientSocket);//add the client to the group
                     ClientNumber=clients.Count;//assign Client number to Number of clients in clients list

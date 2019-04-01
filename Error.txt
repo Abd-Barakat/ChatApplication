@@ -1,6 +1,7 @@
-Date : 3/31/2019 3:40:44 PM
+Date : 4/1/2019 5:55:28 PM
 Stack trace :
-   at ChatApplication.Main.Listening() in C:\Users\a.barakat\source\repos\ChatApplication\Client\Main.cs:line 55
+   at System.Net.Sockets.NetworkStream.Read(Byte[] buffer, Int32 offset, Int32 size)
+   at ChatApplication.Main.Listening() in C:\Users\a.barakat\source\repos\ChatApplication\Client\Main.cs:line 41
 Message :
-The room is full
+Server has shut down
 ---------------------------------------------------------------------------------------------------------------

@@ -26,13 +26,6 @@ namespace ChatApplication
         {
             InitializeComponent();
             CtThread = new Thread(Listening);//create thread to listen
-            Process[] processes = Process.GetProcessesByName("Server");//create server process if not exist
-            if (processes.Length == 0)
-            {
-                string path = System.IO.Directory.GetParent(@"../../../").FullName;
-                path += @"\Server\bin\Debug\Server.exe";
-                Process.Start(path);
-            }
         }
         /// <summary>
         /// listen to server while connection is opened.
@@ -50,23 +43,23 @@ namespace ChatApplication
                     {
                         return;//terminate thread
                     }
-                    if (size ==2)
+                    if (size == 2)
                     {
                         throw new FullException();
-
                     }
                     if (size < ReceiveData.Length)//if retrived data size is less than located memory then resize memory
                     {
                         Array.Resize(ref ReceiveData, size);
                     }
-                    string Data = Encoding.ASCII.GetString(ReceiveData);//transform bytes to string
+                    string Data = Encoding.UTF8.GetString(ReceiveData);//transform bytes to string
+
                     SetText(Data);//write data to conversationbox textbox 
                 }
                 catch (IOException ex)
                 {
                     MessageBox.Show("Server has shut down", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     PrintErrors("Server has shut down", ex);
-                    this.Close();//close thread if any error occur
+                    this.Close();//close thread if Server shut down 
                     return;
                 }
                 catch (FullException ex)
@@ -133,12 +126,12 @@ namespace ChatApplication
                 if (AddressBox.Text == "")//check if AddressBox is empty 
                 {
                     MessageBox.Show("Please write IP Address", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    PrintErrors("Please write IP Address" ,ex);
+                    PrintErrors("Please write IP Address", ex);
                 }
                 else//check if AddressBox  contain invalid text than can't be converted into IP
                 {
                     MessageBox.Show("Incorrect IP Address", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    PrintErrors("Incorrect IP Address" ,ex);
+                    PrintErrors("Incorrect IP Address", ex);
                 }
                 AddressBox.Text = "";//clear Addressbox
             }
@@ -164,9 +157,12 @@ namespace ChatApplication
                 }
                 if (MsgBox.Text != "")//if no message written then no data to send
                 {
+
                     MsgBox.Text = string.Concat(NameBox.Text + " : ", MsgBox.Text);//concatinate user name and message written by him using saparation symbol 
                     network = client.GetStream();//handle client stream 
-                    byte[] SendData = Encoding.ASCII.GetBytes(MsgBox.Text);//hold message in bytes
+                    byte[] SendData = Encoding.UTF8.GetBytes(MsgBox.Text);//hold message in bytes
+                    byte[] Header = BitConverter.GetBytes(SendData.Length);
+                    network.Write(Header, 0, 4);
                     network.Write(SendData, 0, SendData.Length);//send data
                     MsgBox.Text = "";//clear message box    
                     MsgBox.Focus();//give message box foucs to write next message
