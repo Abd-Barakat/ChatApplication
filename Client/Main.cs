@@ -16,6 +16,7 @@ namespace ChatApplication
 {
     public partial class Main : Form
     {
+        private CancellationTokenSource cancellation;
         private TcpClient client = new TcpClient();// client socket
         private NetworkStream network;// Client network stream
         private Thread CtThread;//Client thread to keep listening to server while connection open
@@ -26,24 +27,28 @@ namespace ChatApplication
         {
             InitializeComponent();
             CtThread = new Thread(Listening);//create thread to listen
+            CtThread.IsBackground = true;
         }
         /// <summary>
         /// listen to server while connection is opened.
         /// </summary>
-        private void Listening()
+        private void Listening(object cancel)
         {
-            while (true)
+            this.cancellation = (CancellationTokenSource)cancel;
+            while (!cancellation.IsCancellationRequested)
             {
                 try
                 {
                     network = client.GetStream();//hold client stream to read and write operations.
                     byte[] ReceiveData = new byte[1024 * 20];//hold retrived data from server in bytes
                     int size = network.Read(ReceiveData, 0, ReceiveData.Length);//wait until server send some data
-                    if (size == 1)//when client closes server will send ack in form of one byte
+                    if (size == 0)//when server close the connection after connection is closed by CLIENT
                     {
-                        return;//terminate thread
+                        client.Close();
+                        cancellation.Cancel();
+                        continue;
                     }
-                    if (size == 2)
+                    if (BitConverter.ToInt32(ReceiveData, 0) == 0)
                     {
                         throw new FullException();
                     }
@@ -52,34 +57,51 @@ namespace ChatApplication
                         Array.Resize(ref ReceiveData, size);
                     }
                     string Data = Encoding.UTF8.GetString(ReceiveData);//transform bytes to string
-
                     SetText(Data);//write data to conversationbox textbox 
                 }
                 catch (IOException ex)
                 {
                     MessageBox.Show("Server has shut down", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     PrintErrors("Server has shut down", ex);
-                    this.Close();//close thread if Server shut down 
-                    return;
+                    client = new TcpClient();//because current Socket is closed by server so new Socket need to defined
+                    CtThread = new Thread(Listening);//because current thread will be terminated (deleted) so we need to define a new thread 
+                    EnableInformationPanel(true);
+                    cancellation.Cancel();//cancel looping
+                    continue;
                 }
                 catch (FullException ex)
                 {
                     MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     PrintErrors(ex);
-                    this.Close();//close thread if the room is full.
-                    return;
+                    cancellation.Cancel();
+                    continue;
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     PrintErrors(ex);
-                    this.Close();//close thread if any error occur
-                    return;
+                    cancellation.Cancel();
+                    continue;
                 }
             }
+            cancellation.Dispose();
         }
 
+        private delegate void EnablePanel(bool Enable);
         private delegate void SetTextCallBack(string msg);//handle SetText method to call it in the  UI thread
+        private void EnableInformationPanel(bool Enable)
+        {
+            if (InformationPanel.InvokeRequired)
+            {
+                EnablePanel panel = new EnablePanel(EnableInformationPanel);
+                Invoke(panel, Enable);
+                cancellation = new CancellationTokenSource();
+            }
+            else
+            {
+                InformationPanel.Enabled = Enable;
+            }
+        }
         /// <summary>
         /// Write string to conversationBox textbox, this method can be used by different threads to write on conversationBox textbox
         /// </summary>
@@ -111,9 +133,10 @@ namespace ChatApplication
                 {
                     throw new NullReferenceException();//throw exception
                 }
+                cancellation = new CancellationTokenSource();
                 client.Connect(IPAddress.Parse(AddressBox.Text), 5647);//transform string to IP if posible or throw format exception
-                CtThread.Start();//start listen thread after connection established
-                InformationPanel.Enabled = false;//enable information panel after connection established
+                CtThread.Start(cancellation);//start listen thread after connection established
+                EnableInformationPanel(false);//enable information panel after connection established
             }
             catch (NullReferenceException ex)//catch exception that fired when Namebox is empty
             {
@@ -162,7 +185,7 @@ namespace ChatApplication
                     network = client.GetStream();//handle client stream 
                     byte[] SendData = Encoding.UTF8.GetBytes(MsgBox.Text);//hold message in bytes
                     byte[] Header = BitConverter.GetBytes(SendData.Length);
-                    network.Write(Header, 0, 4);
+                    network.Write(Header, 0, 2);
                     network.Write(SendData, 0, SendData.Length);//send data
                     MsgBox.Text = "";//clear message box    
                     MsgBox.Focus();//give message box foucs to write next message
@@ -204,8 +227,8 @@ namespace ChatApplication
         {
             if (client.Connected)
             {
-                byte[] CloseCode = new byte[1];
-                network.Write(CloseCode, 0, 1);//send one byte to server to tell it client will close.
+                //client.Close();
+                client.Client.Disconnect(true);
             }
         }
         /// <summary>
@@ -217,7 +240,7 @@ namespace ChatApplication
         private void PrintErrors(Exception ex)
         {
             string ErrorPath = System.IO.Directory.GetParent(@"..\..\..\").FullName;
-            using (StreamWriter stream = new StreamWriter(ErrorPath + @"\Error.txt"))
+            using (StreamWriter stream = new StreamWriter(ErrorPath + @"\Error.txt", true))
             {
                 stream.WriteLine("Date : " + DateTime.Now.ToLocalTime());
                 stream.WriteLine("Stack trace :");
@@ -239,7 +262,7 @@ namespace ChatApplication
         private void PrintErrors(string Message, Exception ex)
         {
             string ErrorPath = System.IO.Directory.GetParent(@"..\..\..\").FullName;
-            using (StreamWriter stream = new StreamWriter(ErrorPath + @"\Error.txt"))
+            using (StreamWriter stream = new StreamWriter(ErrorPath + @"\Error.txt", true))
             {
                 stream.WriteLine("Date : " + DateTime.Now.ToLocalTime());
                 stream.WriteLine("Stack trace :");

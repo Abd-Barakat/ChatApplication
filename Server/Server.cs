@@ -27,9 +27,6 @@ namespace Server
                 ClientSocket = server.AcceptTcpClient();//accept client 
                 if (clients.Count != 3)//check if the group is full
                 {
-                    string ACK_Msg = "Connection Established";
-                    byte[] sendACK = Encoding.UTF8.GetBytes(ACK_Msg);//return ACK_Msg bytes
-                    ClientSocket.GetStream().Write(sendACK, 0, sendACK.Length);//write on client stream (send ack to client).
                     clients.Add(ClientSocket);//add the client to the group
                     ClientNumber=clients.Count;//assign Client number to Number of clients in clients list
                     Console.WriteLine("Client #" + ClientNumber.ToString() + " started");
@@ -37,7 +34,7 @@ namespace Server
                 }
                 else
                 {
-                    byte[] sendError = new byte[2];
+                    byte[] sendError = new byte[1] { 0x00 };
                     ClientSocket.GetStream().Write(sendError, 0, sendError.Length);//send two bytes to clients to indecate that room is full
                     ClientSocket = null;
                 }

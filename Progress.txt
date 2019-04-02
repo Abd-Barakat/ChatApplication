@@ -13,3 +13,11 @@ Modify Server class to able clients chat togethers, notes added, Exceptions crea
 
 Task submitted.
  
+-----------------------------------------------------------------------------------------------------------
+Date :2019/4/1 
+Day  :Monday
+
+change encoding to support multilanguage, separate TCP segements in Client's stream, Server run independent from client.
+
+Next step is complete discussed points. 
+ 
